@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ishu AI · Scam Guard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
+
+  <!-- Three.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <style>
+    /* =====================================================================
+       RESET & BASE
+       ===================================================================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --deep:    #050c1a;
+      --panel:   #0d1628;
+      --panel2:  #111f38;
+      --accent:  #2dd4bf;
+      --accent2: #7c9bff;
+      --purple:  #a855f7;
+      --pink:    #f472b6;
+      --safe:    #35d07f;
+      --warn:    #f5a524;
+      --danger:  #f0466b;
+      --text:    #e7ecf5;
+      --dim:     #7a8ba6;
+      --radius:  20px;
+      --font:    'Sora', system-ui, sans-serif;
+      --orb:     'Orbitron', monospace;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      background: var(--deep);
+      font-family: var(--font);
+      color: var(--text);
+    }
+
+    /* =====================================================================
+       CANVAS – Three.js background
+       ===================================================================== */
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* =====================================================================
+       PARTICLE OVERLAY
+       ===================================================================== */
+    #particles {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .particle {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      animation: floatUp linear infinite;
+      opacity: 0;
+    }
+    @keyframes floatUp {
+      0%   { transform: translateY(0) scale(1);   opacity: 0; }
+      10%  { opacity: 0.7; }
+      90%  { opacity: 0.3; }
+      100% { transform: translateY(-100vh) scale(0.3); opacity: 0; }
+    }
+
+    /* =====================================================================
+       GRID LAYOUT
+       ===================================================================== */
+    #app {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      grid-template-rows: 1fr;
+      height: 100vh;
+      width: 100vw;
+      gap: 0;
+    }
+
+    /* =====================================================================
+       LEFT SIDE – 3D CHARACTER PANEL
+       ===================================================================== */
+    #hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      padding: 30px;
+      overflow: hidden;
+    }
+
+    /* Glowing orb behind character */
+    #hero::before {
+      content: '';
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(45,212,191,0.12) 0%, rgba(124,155,255,0.08) 40%, transparent 70%);
+      animation: orbPulse 4s ease-in-out infinite;
+    }
+    @keyframes orbPulse {
+      0%, 100% { transform: scale(1);   opacity: 0.8; }
+      50%       { transform: scale(1.15); opacity: 1;   }
+    }
+
+    /* ---- Character Container ---- */
+    #char-wrapper {
+      position: relative;
+      width: 380px;
+      height: 480px;
+      perspective: 1200px;
+      cursor: pointer;
+    }
+
+    #char-3d {
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.1s ease-out;
+      position: relative;
+    }
+
+    /* Holographic card face */
+    #char-face {
+      position: absolute;
+      inset: 0;
+      border-radius: 30px;
+      overflow: hidden;
+      background: linear-gradient(145deg, rgba(13,22,40,0.7), rgba(17,31,56,0.5));
+      border: 1.5px solid rgba(45,212,191,0.3);
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    /* Shimmer effect on card */
+    #char-face::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        135deg,
+        transparent 30%,
+        rgba(45,212,191,0.05) 40%,
+        rgba(124,155,255,0.08) 50%,
+        transparent 60%
+      );
+      animation: shimmer 3s ease-in-out infinite;
+    }
+    @keyframes shimmer {
+      0%   { opacity: 0; transform: translateX(-100%) rotate(30deg); }
+      50%  { opacity: 1; }
+      100% { opacity: 0; transform: translateX(100%) rotate(30deg); }
+    }
+
+    /* The girl image */
+    #ishu-img {
+      width: 340px;
+      height: 420px;
+      object-fit: cover;
+      object-position: center top;
+      border-radius: 20px 20px 0 0;
+      filter: drop-shadow(0 0 30px rgba(45,212,191,0.4)) drop-shadow(0 0 60px rgba(124,155,255,0.2));
+      position: relative;
+      z-index: 1;
+      animation: ishuFloat 3.5s ease-in-out infinite;
+    }
+    @keyframes ishuFloat {
+      0%, 100% { transform: translateY(0px);  }
+      50%       { transform: translateY(-12px); }
+    }
+
+    /* Glow rings around character */
+    .ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid;
+      animation: ringExpand 3s ease-out infinite;
+      pointer-events: none;
+    }
+    .ring:nth-child(1) { width: 300px; height: 300px; border-color: rgba(45,212,191,0.3); bottom: 30px; left: 50%; transform: translateX(-50%); animation-delay: 0s; }
+    .ring:nth-child(2) { width: 400px; height: 400px; border-color: rgba(124,155,255,0.2); bottom: 0px; left: 50%; transform: translateX(-50%); animation-delay: 1s; }
+    .ring:nth-child(3) { width: 500px; height: 500px; border-color: rgba(168,85,247,0.15); bottom: -30px; left: 50%; transform: translateX(-50%); animation-delay: 2s; }
+    @keyframes ringExpand {
+      0%   { transform: translateX(-50%) scale(0.8); opacity: 0.8; }
+      100% { transform: translateX(-50%) scale(1.2); opacity: 0; }
+    }
+
+    /* Name plate */
+    #nameplate {
+      position: absolute;
+      bottom: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, rgba(13,22,40,0.95), rgba(17,31,56,0.95));
+      border: 1px solid rgba(45,212,191,0.5);
+      border-radius: 50px;
+      padding: 10px 28px;
+      text-align: center;
+      white-space: nowrap;
+      z-index: 10;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 30px rgba(45,212,191,0.3);
+    }
+    #nameplate .name {
+      font-family: var(--orb);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 2px;
+    }
+    #nameplate .role {
+      font-size: 10px;
+      color: var(--dim);
+      letter-spacing: 1px;
+      margin-top: 2px;
+    }
+
+    /* Status badge */
+    #status-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(13,22,40,0.9);
+      border: 1px solid rgba(53,208,127,0.4);
+      border-radius: 30px;
+      padding: 8px 18px;
+      margin-top: 50px;
+      font-size: 12px;
+      color: var(--safe);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    #status-badge .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--safe);
+      animation: blink 1.5s ease-in-out infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.3; }
+    }
+
+    /* Quick launch buttons (YouTube + WhatsApp) */
+    #quick-btns {
+      display: flex;
+      gap: 14px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .quick-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 22px;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font);
+      font-weight: 600;
+      font-size: 13px;
+      text-decoration: none;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .quick-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50px;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+    .quick-btn:hover::before { opacity: 1; }
+    .quick-btn:hover { transform: translateY(-3px) scale(1.03); }
+    .quick-btn:active { transform: scale(0.97); }
+
+    .btn-youtube {
+      background: linear-gradient(135deg, #ff0000, #cc0000);
+      color: #fff;
+      box-shadow: 0 6px 20px rgba(255,0,0,0.35);
+    }
+    .btn-youtube::before { background: linear-gradient(135deg, #ff3333, #ff0000); }
+    .btn-youtube:hover { box-shadow: 0 10px 30px rgba(255,0,0,0.5); }
+
+    .btn-whatsapp {
+      background: linear-gradient(135deg, #25d366, #128c7e);
+      color: #fff;
+      box-shadow: 0 6px 20px rgba(37,211,102,0.35);
+    }
+    .btn-whatsapp::before { background: linear-gradient(135deg, #34eb7a, #25d366); }
+    .btn-whatsapp:hover { box-shadow: 0 10px 30px rgba(37,211,102,0.5); }
+
+    .quick-btn svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    /* Brain stats */
+    #brain-stats {
+      display: flex;
+      gap: 18px;
+      margin-top: 22px;
+    }
+    .stat-box {
+      text-align: center;
+      padding: 10px 16px;
+      background: rgba(13,22,40,0.8);
+      border: 1px solid rgba(124,155,255,0.2);
+      border-radius: 14px;
+    }
+    .stat-box .val {
+      font-family: var(--orb);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .stat-box .lbl {
+      font-size: 9px;
+      color: var(--dim);
+      letter-spacing: 0.8px;
+      margin-top: 2px;
+    }
+
+    /* =====================================================================
+       RIGHT SIDE – CHAT PANEL
+       ===================================================================== */
+    #chat-panel {
+      background: linear-gradient(180deg, #0a1525 0%, #0d1628 100%);
+      border-left: 1px solid rgba(124,155,255,0.15);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ---- Chat Header ---- */
+    #chat-header {
+      padding: 16px 20px;
+      background: linear-gradient(135deg, #0f1e36, #0a1525);
+      border-bottom: 1px solid rgba(124,155,255,0.15);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    #chat-header .avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 2px solid rgba(45,212,191,0.5);
+      flex-shrink: 0;
+      position: relative;
+    }
+    #chat-header .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top;
+    }
+    #chat-header .avatar::after {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border-radius: 17px;
+      border: 2px solid var(--accent);
+      opacity: 0.4;
+      animation: avatarGlow 2s ease-in-out infinite;
+    }
+    @keyframes avatarGlow {
+      0%, 100% { opacity: 0.4; transform: scale(1); }
+      50%       { opacity: 0.8; transform: scale(1.05); }
+    }
+
+    #chat-header .info { flex: 1; }
+    #chat-header .info .name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    #chat-header .info .sub {
+      font-size: 11px;
+      color: var(--accent);
+      margin-top: 1px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    #chat-header .info .sub::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--safe);
+      animation: blink 1.5s ease-in-out infinite;
+    }
+
+    /* Header action buttons */
+    .hdr-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      border: 1px solid rgba(124,155,255,0.2);
+      background: rgba(13,22,40,0.6);
+      color: var(--dim);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+    .hdr-btn:hover { color: var(--accent); border-color: var(--accent); background: rgba(45,212,191,0.1); }
+    .hdr-btn svg { width: 16px; height: 16px; }
+
+    /* ---- Channel Chips ---- */
+    #channels {
+      display: flex;
+      gap: 6px;
+      padding: 10px 16px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid rgba(124,155,255,0.1);
+      flex-shrink: 0;
+      background: rgba(10,17,30,0.5);
+    }
+    .chip {
+      font-size: 11px;
+      color: var(--dim);
+      border: 1px solid rgba(140,153,179,0.25);
+      padding: 5px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      background: transparent;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+      font-family: var(--font);
+    }
+    .chip.active, .chip:hover {
+      color: var(--deep);
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    .chip.gmail-chip {
+      border-color: rgba(124,155,255,0.35);
+      color: var(--accent2);
+      margin-left: auto;
+    }
+    .chip.gmail-chip:hover { background: var(--accent2); color: var(--deep); border-color: var(--accent2); }
+
+    /* ---- Messages ---- */
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      scroll-behavior: smooth;
+    }
+    #messages::-webkit-scrollbar { width: 4px; }
+    #messages::-webkit-scrollbar-track { background: transparent; }
+    #messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+    .msg-row { display: flex; gap: 10px; }
+    .msg-row.bot { justify-content: flex-start; align-items: flex-end; }
+    .msg-row.user { justify-content: flex-end; align-items: flex-end; }
+
+    .msg-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+      overflow: hidden;
+      flex-shrink: 0;
+      border: 1px solid rgba(45,212,191,0.3);
+    }
+    .msg-avatar img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+
+    .bubble {
+      max-width: 82%;
+      padding: 11px 14px;
+      border-radius: 16px;
+      font-size: 13px;
+      line-height: 1.5;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+      animation: msgPop 0.3s cubic-bezier(0.34,1.56,0.64,1) forwards;
+    }
+    @keyframes msgPop {
+      from { opacity: 0; transform: scale(0.85) translateY(8px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .msg-row.bot .bubble {
+      background: linear-gradient(135deg, #111f38, #0e1a30);
+      color: var(--text);
+      border-bottom-left-radius: 4px;
+      border: 1px solid rgba(124,155,255,0.15);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+    .msg-row.user .bubble {
+      background: linear-gradient(135deg, var(--accent2), #5f7fe0);
+      color: #050c1a;
+      font-weight: 500;
+      border-bottom-right-radius: 4px;
+      box-shadow: 0 4px 15px rgba(124,155,255,0.25);
+    }
+
+    /* Verdict badge */
+    .verdict-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      margin-bottom: 8px;
+    }
+    .verdict-badge.scam       { background: rgba(240,70,105,0.18); color: var(--danger); }
+    .verdict-badge.suspicious { background: rgba(245,165,36,0.18);  color: var(--warn); }
+    .verdict-badge.legit      { background: rgba(53,208,127,0.18);  color: var(--safe); }
+
+    .red-flags { margin: 6px 0 0; padding-left: 16px; }
+    .red-flags li { font-size: 12px; color: var(--dim); margin-bottom: 3px; }
+
+    .file-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      background: rgba(0,0,0,0.2);
+      padding: 5px 10px;
+      border-radius: 8px;
+      margin-bottom: 6px;
+    }
+
+    /* Typing indicator */
+    .typing-bubble { padding: 14px 18px !important; }
+    .typing-dots { display: flex; gap: 4px; }
+    .typing-dots span {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--dim);
+      animation: bounce 1.2s ease-in-out infinite;
+    }
+    .typing-dots span:nth-child(2) { animation-delay: 0.15s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+      30%            { transform: translateY(-5px); opacity: 1; }
+    }
+
+    /* Gmail inbox cards */
+    .inbox-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+    .inbox-card {
+      background: rgba(10,15,30,0.4);
+      border: 1px solid rgba(140,153,179,0.18);
+      border-radius: 12px;
+      padding: 10px 13px;
+    }
+    .inbox-subject { font-weight: 600; font-size: 12.5px; margin-bottom: 2px; }
+    .inbox-sender  { font-size: 11px; color: var(--dim); margin-bottom: 6px; }
+
+    /* ---- Attachment preview ---- */
+    #attachment-bar {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      margin: 0 12px 4px;
+      background: var(--panel2);
+      border-radius: 12px;
+      font-size: 12px;
+      color: var(--dim);
+      border: 1px solid rgba(124,155,255,0.15);
+    }
+    #attachment-bar.show { display: flex; }
+    #attachment-bar button {
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: var(--dim);
+      cursor: pointer;
+      font-size: 14px;
+    }
+    #attachment-bar button:hover { color: var(--text); }
+
+    /* ---- Input Bar ---- */
+    #inputbar {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      padding: 12px;
+      border-top: 1px solid rgba(124,155,255,0.12);
+      background: #080f1e;
+      flex-shrink: 0;
+    }
+
+    #attach-btn {
+      width: 40px; height: 40px;
+      border-radius: 12px;
+      border: 1px solid rgba(140,153,179,0.22);
+      background: var(--panel2);
+      color: var(--dim);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+    }
+    #attach-btn:hover { color: var(--accent); border-color: var(--accent); }
+    #attach-btn svg { width: 18px; height: 18px; }
+
+    #msg-input {
+      flex: 1;
+      resize: none;
+      min-height: 40px;
+      max-height: 100px;
+      background: var(--panel2);
+      border: 1px solid rgba(140,153,179,0.22);
+      border-radius: 12px;
+      color: var(--text);
+      font-size: 13px;
+      font-family: var(--font);
+      padding: 10px 13px;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+    #msg-input:focus { border-color: var(--accent); }
+    #msg-input::placeholder { color: var(--dim); }
+
+    #send-btn {
+      width: 40px; height: 40px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent), #1aa99a);
+      color: var(--deep);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 15px rgba(45,212,191,0.35);
+    }
+    #send-btn:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(45,212,191,0.5); }
+    #send-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    #send-btn svg { width: 17px; height: 17px; }
+
+    #footnote {
+      text-align: center;
+      font-size: 10px;
+      color: var(--dim);
+      padding: 5px 10px 8px;
+      background: #080f1e;
+    }
+
+    /* =====================================================================
+       SCAN EFFECT OVERLAY (briefly shows when analyzing)
+       ===================================================================== */
+    #scan-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      pointer-events: none;
+      display: none;
+    }
+    #scan-overlay.active { display: block; }
+    #scan-overlay::after {
+      content: '';
+      position: absolute;
+      left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), var(--purple), transparent);
+      animation: scanLine 0.8s linear infinite;
+      box-shadow: 0 0 20px var(--accent);
+    }
+    @keyframes scanLine {
+      0%   { top: 0; }
+      100% { top: 100%; }
+    }
+
+    /* =====================================================================
+       TOAST NOTIFICATIONS
+       ===================================================================== */
+    #toast-container {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .toast {
+      background: rgba(13,22,40,0.95);
+      border: 1px solid rgba(45,212,191,0.4);
+      border-radius: 12px;
+      padding: 10px 20px;
+      font-size: 13px;
+      color: var(--text);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      animation: toastIn 0.3s ease forwards;
+      pointer-events: auto;
+    }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* =====================================================================
+       RESPONSIVE
+       ===================================================================== */
+    @media (max-width: 900px) {
+      #app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+      #hero { height: 280px; padding: 16px; }
+      #char-wrapper { width: 220px; height: 260px; }
+      #ishu-img { width: 200px; height: 240px; }
+      #quick-btns, #brain-stats { gap: 8px; }
+      #chat-panel { height: calc(100vh - 280px); }
+      .ring { display: none; }
+    }
+
+    /* =====================================================================
+       HOLOGRAPHIC SCANLINES
+       ===================================================================== */
+    #scanlines {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(45,212,191,0.015) 2px,
+        rgba(45,212,191,0.015) 4px
+      );
+    }
+  </style>
+</head>
+<body>
+
+<!-- Three.js background canvas -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- Particle overlay -->
+<div id="particles"></div>
+
+<!-- Scanline holographic effect -->
+<div id="scanlines"></div>
+
+<!-- Scan overlay (when analyzing) -->
+<div id="scan-overlay"></div>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<!-- Hidden file input -->
+<input type="file" id="file-input" accept=".pdf,image/png,image/jpeg,image/jpg" style="display:none" />
+
+<!-- =====================================================================
+     MAIN APP
+     ===================================================================== -->
+<div id="app">
+
+  <!-- ===== LEFT: CHARACTER HERO ===== -->
+  <section id="hero">
+
+    <div id="char-wrapper">
+      <div id="char-3d">
+        <div id="char-face">
+          <img
+            id="ishu-img"
+            src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='340' height='420' viewBox='0 0 340 420'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%230d1628'/%3E%3Cstop offset='100%25' stop-color='%23050c1a'/%3E%3C/linearGradient%3E%3CradialGradient id='glow' cx='50%25' cy='40%25' r='50%25'%3E%3Cstop offset='0%25' stop-color='%232dd4bf' stop-opacity='0.3'/%3E%3Cstop offset='100%25' stop-color='transparent'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='340' height='420' fill='url(%23bg)'/%3E%3Cellipse cx='170' cy='180' rx='120' ry='130' fill='url(%23glow)'/%3E%3Ccircle cx='170' cy='155' r='70' fill='%23111f38' stroke='%232dd4bf' stroke-width='2'/%3E%3Cellipse cx='170' cy='285' rx='90' ry='80' fill='%23111f38' stroke='%237c9bff' stroke-width='1.5'/%3E%3Ccircle cx='140' cy='140' r='12' fill='%232dd4bf' opacity='0.8'/%3E%3Ccircle cx='200' cy='140' r='12' fill='%232dd4bf' opacity='0.8'/%3E%3Ccircle cx='140' cy='140' r='5' fill='%23050c1a'/%3E%3Ccircle cx='200' cy='140' r='5' fill='%23050c1a'/%3E%3Cpath d='M155 170 Q170 185 185 170' stroke='%232dd4bf' stroke-width='2.5' fill='none' stroke-linecap='round'/%3E%3Cpath d='M80 80 Q120 20 170 30 Q220 20 260 80' stroke='%237c9bff' stroke-width='3' fill='none'/%3E%3Cpath d='M90 80 Q60 130 80 180' stroke='%232dd4bf' stroke-width='2' fill='none' opacity='0.5'/%3E%3Cpath d='M250 80 Q280 130 260 180' stroke='%232dd4bf' stroke-width='2' fill='none' opacity='0.5'/%3E%3Ctext x='170' y='380' text-anchor='middle' font-family='Orbitron,monospace' font-size='18' fill='%232dd4bf' font-weight='700'%3EISHU AI%3C/text%3E%3Ctext x='170' y='400' text-anchor='middle' font-family='Sora,sans-serif' font-size='11' fill='%237a8ba6'%3EScam Guard · Active%3C/text%3E%3C/svg%3E"
+            alt="Ishu AI"
+          />
+        </div>
+      </div>
+      <!-- rings -->
+      <div class="ring"></div>
+      <div class="ring"></div>
+      <div class="ring"></div>
+      <!-- name plate -->
+      <div id="nameplate">
+        <div class="name">ISHU AI</div>
+        <div class="role">Digital Scam Guardian</div>
+      </div>
+    </div>
+
+    <div id="status-badge">
+      <span class="dot"></span>
+      Online · Shield Active · Protecting You
+    </div>
+
+    <!-- Quick Launch Buttons -->
+    <div id="quick-btns">
+      <a class="quick-btn btn-youtube" href="https://www.youtube.com" target="_blank" rel="noopener" title="Open YouTube">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 00.5 6.2 31 31 0 000 12a31 31 0 00.5 5.8 3 3 0 002.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 002.1-2.1A31 31 0 0024 12a31 31 0 00-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/>
+        </svg>
+        YouTube
+      </a>
+
+      <a class="quick-btn btn-whatsapp" href="https://web.whatsapp.com" target="_blank" rel="noopener" title="Open WhatsApp Web">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M17.5 14.4c-.3-.1-1.7-.8-1.9-.9-.3-.1-.5-.1-.7.1-.2.3-.8.9-1 1.1-.2.2-.3.2-.6.1-1.7-.9-2.8-1.6-3.9-3.5-.3-.5.3-.5.9-1.6.1-.2 0-.4-.1-.5-.1-.1-.7-1.7-1-2.3-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4C7.3 7.2 6.5 8 6.5 9.6c0 1.6 1.2 3.2 1.3 3.4 1.2 1.8 2.6 3.1 4.1 3.8 2.4 1 3.3.7 3.9.7.6-.1 1.9-.8 2.2-1.5.3-.7.3-1.3.2-1.4-.1-.2-.3-.3-.7-.4zm-5.5 7.5C5 21.9.1 17 .1 11 .1 5 5 .1 12 .1c7 0 11.9 4.9 11.9 10.9 0 6-4.9 10.9-11.9 10.9-2 0-3.9-.5-5.5-1.5L1 23l2.1-4.5A10.8 10.8 0 012 12C2 6.5 6.5 2 12 2s10 4.5 10 10-4.5 10-10 10z"/>
+        </svg>
+        WhatsApp
+      </a>
+    </div>
+
+    <!-- Stats -->
+    <div id="brain-stats">
+      <div class="stat-box">
+        <div class="val" id="stat-scans">0</div>
+        <div class="lbl">SCANS TODAY</div>
+      </div>
+      <div class="stat-box">
+        <div class="val" id="stat-blocked">0</div>
+        <div class="lbl">SCAMS BLOCKED</div>
+      </div>
+      <div class="stat-box">
+        <div class="val">99%</div>
+        <div class="lbl">ACCURACY</div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ===== RIGHT: CHAT PANEL ===== -->
+  <aside id="chat-panel">
+
+    <!-- Header -->
+    <div id="chat-header">
+      <div class="avatar">
+        <img
+          src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Crect width='44' height='44' fill='%230d1628'/%3E%3Ccircle cx='22' cy='18' r='9' fill='%23111f38' stroke='%232dd4bf' stroke-width='1.5'/%3E%3Ccircle cx='17' cy='16' r='3' fill='%232dd4bf' opacity='0.9'/%3E%3Ccircle cx='27' cy='16' r='3' fill='%232dd4bf' opacity='0.9'/%3E%3Ccircle cx='17' cy='16' r='1.2' fill='%23050c1a'/%3E%3Ccircle cx='27' cy='16' r='1.2' fill='%23050c1a'/%3E%3Cpath d='M17 22 Q22 26 27 22' stroke='%232dd4bf' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3Cellipse cx='22' cy='35' rx='12' ry='9' fill='%23111f38' stroke='%237c9bff' stroke-width='1'/%3E%3C/svg%3E"
+          alt="Ishu"
+        />
+      </div>
+      <div class="info">
+        <div class="name">Ishu AI · Scam Guard</div>
+        <div class="sub">Online — Ready to protect you</div>
+      </div>
+      <!-- YouTube header button -->
+      <a class="hdr-btn" href="https://www.youtube.com" target="_blank" rel="noopener" title="Open YouTube">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 00.5 6.2 31 31 0 000 12a31 31 0 00.5 5.8 3 3 0 002.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 002.1-2.1A31 31 0 0024 12a31 31 0 00-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/>
+        </svg>
+      </a>
+      <!-- WhatsApp header button -->
+      <a class="hdr-btn" href="https://web.whatsapp.com" target="_blank" rel="noopener" title="Open WhatsApp">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M17.5 14.4c-.3-.1-1.7-.8-1.9-.9-.3-.1-.5-.1-.7.1-.2.3-.8.9-1 1.1-.2.2-.3.2-.6.1-1.7-.9-2.8-1.6-3.9-3.5-.3-.5.3-.5.9-1.6.1-.2 0-.4-.1-.5-.1-.1-.7-1.7-1-2.3-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4C7.3 7.2 6.5 8 6.5 9.6c0 1.6 1.2 3.2 1.3 3.4 1.2 1.8 2.6 3.1 4.1 3.8 2.4 1 3.3.7 3.9.7.6-.1 1.9-.8 2.2-1.5.3-.7.3-1.3.2-1.4-.1-.2-.3-.3-.7-.4zm-5.5 7.5C5 21.9.1 17 .1 11 .1 5 5 .1 12 .1c7 0 11.9 4.9 11.9 10.9 0 6-4.9 10.9-11.9 10.9-2 0-3.9-.5-5.5-1.5L1 23l2.1-4.5A10.8 10.8 0 012 12C2 6.5 6.5 2 12 2s10 4.5 10 10-4.5 10-10 10z"/>
+        </svg>
+      </a>
+    </div>
+
+    <!-- Channel selector chips -->
+    <div id="channels">
+      <button class="chip" data-channel="email">Email</button>
+      <button class="chip" data-channel="whatsapp">WhatsApp</button>
+      <button class="chip" data-channel="sms">SMS</button>
+      <button class="chip" data-channel="call">Call Transcript</button>
+      <button class="chip gmail-chip" id="gmail-chip">📥 Scan Gmail</button>
+    </div>
+
+    <!-- Messages area -->
+    <div id="messages"></div>
+
+    <!-- Attachment preview bar -->
+    <div id="attachment-bar">
+      <span id="attachment-name">📎 file.pdf</span>
+      <button id="clear-attach">✕</button>
+    </div>
+
+    <!-- Input bar -->
+    <div id="inputbar">
+      <button id="attach-btn" title="Attach PDF or screenshot">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
+        </svg>
+      </button>
+      <textarea id="msg-input" rows="1" placeholder="Paste a message, or describe what happened…"></textarea>
+      <button id="send-btn">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M3 11.5L20.5 3 13 20.5l-2.4-6.6L3 11.5z"/>
+        </svg>
+      </button>
+    </div>
+
+    <div id="footnote">Ishu AI can make mistakes · Never pay money to secure a job · cybercrime.gov.in</div>
+
+  </aside>
+</div>
+
+<!-- =====================================================================
+     JAVASCRIPT
+     ===================================================================== -->
+<script>
+/* ============================================================
+   CONFIG
+   ============================================================ */
+const API_BASE = 'http://localhost:8000';
+const AVATAR_SVG = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Crect width='44' height='44' fill='%230d1628'/%3E%3Ccircle cx='22' cy='18' r='9' fill='%23111f38' stroke='%232dd4bf' stroke-width='1.5'/%3E%3Ccircle cx='17' cy='16' r='3' fill='%232dd4bf' opacity='0.9'/%3E%3Ccircle cx='27' cy='16' r='3' fill='%232dd4bf' opacity='0.9'/%3E%3Ccircle cx='17' cy='16' r='1.2' fill='%23050c1a'/%3E%3Ccircle cx='27' cy='16' r='1.2' fill='%23050c1a'/%3E%3Cpath d='M17 22 Q22 26 27 22' stroke='%232dd4bf' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3Cellipse cx='22' cy='35' rx='12' ry='9' fill='%23111f38' stroke='%237c9bff' stroke-width='1'/%3E%3C/svg%3E`;
+
+const state = {
+  channel: 'other',
+  history: [],
+  sending: false,
+  pendingFile: null,
+  scanCount: 0,
+  blockedCount: 0,
+};
+
+/* ============================================================
+   THREE.JS BACKGROUND
+   ============================================================ */
+(function initThree() {
+  const canvas = document.getElementById('bg-canvas');
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera.position.z = 5;
+
+  /* Stars / grid points */
+  const starGeo = new THREE.BufferGeometry();
+  const starCount = 800;
+  const positions = new Float32Array(starCount * 3);
+  const colors = new Float32Array(starCount * 3);
+  const palette = [
+    [0.17, 0.83, 0.75], // cyan
+    [0.49, 0.61, 1.00], // blue-purple
+    [0.66, 0.33, 0.97], // purple
+  ];
+  for (let i = 0; i < starCount; i++) {
+    positions[i * 3]     = (Math.random() - 0.5) * 30;
+    positions[i * 3 + 1] = (Math.random() - 0.5) * 20;
+    positions[i * 3 + 2] = (Math.random() - 0.5) * 20;
+    const c = palette[Math.floor(Math.random() * palette.length)];
+    colors[i * 3]     = c[0];
+    colors[i * 3 + 1] = c[1];
+    colors[i * 3 + 2] = c[2];
+  }
+  starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  starGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  const starMat = new THREE.PointsMaterial({ size: 0.08, vertexColors: true, transparent: true, opacity: 0.7 });
+  scene.add(new THREE.Points(starGeo, starMat));
+
+  /* Floating torus rings */
+  const rings = [];
+  const ringColors = [0x2dd4bf, 0x7c9bff, 0xa855f7];
+  for (let i = 0; i < 3; i++) {
+    const geo = new THREE.TorusGeometry(1.5 + i * 0.8, 0.008, 8, 80);
+    const mat = new THREE.MeshBasicMaterial({ color: ringColors[i], transparent: true, opacity: 0.25 - i * 0.05 });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.rotation.x = Math.random() * Math.PI;
+    mesh.rotation.y = Math.random() * Math.PI;
+    mesh.position.set((Math.random() - 0.5) * 4, (Math.random() - 0.5) * 3, -3 - i * 2);
+    scene.add(mesh);
+    rings.push(mesh);
+  }
+
+  /* Icosahedron wireframe */
+  const icoGeo = new THREE.IcosahedronGeometry(0.9, 1);
+  const icoMat = new THREE.MeshBasicMaterial({ color: 0x2dd4bf, wireframe: true, transparent: true, opacity: 0.12 });
+  const ico = new THREE.Mesh(icoGeo, icoMat);
+  ico.position.set(-4, 1, -4);
+  scene.add(ico);
+
+  const icoGeo2 = new THREE.OctahedronGeometry(0.6, 0);
+  const icoMat2 = new THREE.MeshBasicMaterial({ color: 0x7c9bff, wireframe: true, transparent: true, opacity: 0.15 });
+  const ico2 = new THREE.Mesh(icoGeo2, icoMat2);
+  ico2.position.set(4, -2, -5);
+  scene.add(ico2);
+
+  let t = 0;
+  function animate() {
+    requestAnimationFrame(animate);
+    t += 0.003;
+    rings.forEach((r, i) => {
+      r.rotation.x += 0.002 + i * 0.001;
+      r.rotation.y += 0.003 + i * 0.001;
+    });
+    ico.rotation.y += 0.005;
+    ico.rotation.x += 0.003;
+    ico2.rotation.y -= 0.004;
+    ico2.rotation.z += 0.003;
+    starMat.opacity = 0.5 + Math.sin(t) * 0.2;
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  window.addEventListener('resize', () => {
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+  });
+})();
+
+/* ============================================================
+   3D TILT EFFECT ON CHARACTER
+   ============================================================ */
+const charWrapper = document.getElementById('char-wrapper');
+const char3d = document.getElementById('char-3d');
+charWrapper.addEventListener('mousemove', (e) => {
+  const rect = charWrapper.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const dx = (e.clientX - cx) / (rect.width / 2);
+  const dy = (e.clientY - cy) / (rect.height / 2);
+  char3d.style.transform = `rotateY(${dx * 15}deg) rotateX(${-dy * 10}deg)`;
+});
+charWrapper.addEventListener('mouseleave', () => {
+  char3d.style.transform = 'rotateY(0deg) rotateX(0deg)';
+});
+
+/* ============================================================
+   PARTICLES
+   ============================================================ */
+(function spawnParticles() {
+  const container = document.getElementById('particles');
+  const colors = ['#2dd4bf', '#7c9bff', '#a855f7', '#f472b6'];
+  for (let i = 0; i < 40; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random() * 5 + 2;
+    p.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random()*100}%;
+      top:${100 + Math.random()*20}%;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      animation-duration:${6 + Math.random()*8}s;
+      animation-delay:${-Math.random()*10}s;
+      box-shadow:0 0 ${size*3}px currentColor;
+    `;
+    container.appendChild(p);
+  }
+})();
+
+/* ============================================================
+   STAT COUNTERS (animate on load)
+   ============================================================ */
+function animateCounter(el, target, duration = 1500) {
+  let start = 0;
+  const step = target / (duration / 16);
+  const t = setInterval(() => {
+    start = Math.min(start + step, target);
+    el.textContent = Math.floor(start);
+    if (start >= target) clearInterval(t);
+  }, 16);
+}
+setTimeout(() => {
+  animateCounter(document.getElementById('stat-scans'), 247);
+  animateCounter(document.getElementById('stat-blocked'), 89);
+}, 800);
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+function showToast(msg, duration = 3000) {
+  const container = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  container.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.4s'; setTimeout(() => t.remove(), 400); }, duration);
+}
+
+/* ============================================================
+   SCAN OVERLAY
+   ============================================================ */
+function showScanOverlay() { document.getElementById('scan-overlay').classList.add('active'); }
+function hideScanOverlay() { document.getElementById('scan-overlay').classList.remove('active'); }
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function verdictClass(v) {
+  if (!v) return '';
+  const s = v.toLowerCase();
+  if (s.includes('scam')) return 'scam';
+  if (s.includes('suspicious')) return 'suspicious';
+  if (s.includes('legit')) return 'legit';
+  return '';
+}
+
+function cleanBody(reply) {
+  return (reply || '')
+    .replace(/VERDICT:.*(\n|$)/g, '')
+    .replace(/CONFIDENCE:.*(\n|$)/g, '')
+    .replace(/RED FLAGS:[\s\S]*?(WHY:|$)/, '$1')
+    .trim();
+}
+
+/* ============================================================
+   RENDER FUNCTIONS
+   ============================================================ */
+const messagesEl = document.getElementById('messages');
+
+function mkEl(tag, cls, html) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (html !== undefined) e.innerHTML = html;
+  return e;
+}
+
+function renderBot(data) {
+  const row = mkEl('div', 'msg-row bot');
+  const av  = mkEl('div', 'msg-avatar');
+  av.innerHTML = `<img src="${AVATAR_SVG}" alt="Ishu"/>`;
+  const bub = mkEl('div', 'bubble');
+
+  if (data.verdict) {
+    const badge = mkEl('div', `verdict-badge ${verdictClass(data.verdict)}`);
+    badge.textContent = `⚠ ${data.verdict}${data.confidence ? ' · ' + data.confidence : ''}`;
+    bub.appendChild(badge);
+  }
+
+  bub.appendChild(mkEl('div', null, esc(cleanBody(data.reply)).replace(/\n/g, '<br>')));
+
+  if (data.red_flags && data.red_flags.length) {
+    const ul = mkEl('ul', 'red-flags');
+    data.red_flags.forEach(f => ul.appendChild(mkEl('li', null, esc(f))));
+    bub.appendChild(ul);
+  }
+
+  row.appendChild(av);
+  row.appendChild(bub);
+  return row;
+}
+
+function renderUser(text, fileLabel) {
+  const row = mkEl('div', 'msg-row user');
+  const bub = mkEl('div', 'bubble');
+  if (fileLabel) bub.appendChild(mkEl('div', 'file-chip', `📎 ${esc(fileLabel)}`));
+  if (text) bub.appendChild(mkEl('div', null, esc(text)));
+  row.appendChild(bub);
+  return row;
+}
+
+function addTyping() {
+  const row = mkEl('div', 'msg-row bot');
+  row.id = 'typing-row';
+  const av = mkEl('div', 'msg-avatar');
+  av.innerHTML = `<img src="${AVATAR_SVG}" alt="Ishu"/>`;
+  const bub = mkEl('div', 'bubble typing-bubble');
+  bub.innerHTML = `<div class="typing-dots"><span></span><span></span><span></span></div>`;
+  row.appendChild(av);
+  row.appendChild(bub);
+  messagesEl.appendChild(row);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function removeTyping() {
+  const r = document.getElementById('typing-row');
+  if (r) r.remove();
+}
+
+function scrollBottom() { messagesEl.scrollTop = messagesEl.scrollHeight; }
+
+/* ============================================================
+   CHANNEL CHIPS
+   ============================================================ */
+document.getElementById('channels').querySelectorAll('.chip[data-channel]').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.chip[data-channel]').forEach(c => c.classList.remove('active'));
+    const key = chip.dataset.channel;
+    if (state.channel === key) { state.channel = 'other'; }
+    else { state.channel = key; chip.classList.add('active'); }
+  });
+});
+
+/* ============================================================
+   SEND TEXT
+   ============================================================ */
+async function sendMessage(text) {
+  if (!text.trim() || state.sending) return;
+  state.sending = true;
+  document.getElementById('send-btn').disabled = true;
+
+  messagesEl.appendChild(renderUser(text));
+  addTyping();
+  showScanOverlay();
+
+  try {
+    const res = await fetch(`${API_BASE}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text, history: state.history, channel: state.channel }),
+    });
+    removeTyping();
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      messagesEl.appendChild(renderBot({ reply: err.detail || 'Something went wrong reaching Ishu AI.' }));
+    } else {
+      const data = await res.json();
+      state.history.push({ role: 'user', content: text });
+      state.history.push({ role: 'assistant', content: data.reply });
+      messagesEl.appendChild(renderBot(data));
+      state.scanCount++;
+      document.getElementById('stat-scans').textContent = 247 + state.scanCount;
+      if (data.verdict && data.verdict.toLowerCase().includes('scam')) {
+        state.blockedCount++;
+        document.getElementById('stat-blocked').textContent = 89 + state.blockedCount;
+        showToast('🚨 Scam Detected! Stay safe!');
+      } else if (data.verdict && data.verdict.toLowerCase().includes('legit')) {
+        showToast('✅ Looks Legitimate — but always stay cautious!');
+      }
+    }
+  } catch (e) {
+    removeTyping();
+    messagesEl.appendChild(renderBot({ reply: `⚠ Can't reach Ishu AI backend at ${API_BASE}.\n\nMake sure the backend is running:\n  uvicorn main:app --reload --port 8000` }));
+  } finally {
+    state.sending = false;
+    document.getElementById('send-btn').disabled = false;
+    hideScanOverlay();
+    scrollBottom();
+  }
+}
+
+/* ============================================================
+   SEND FILE
+   ============================================================ */
+async function sendFile(file, note) {
+  if (state.sending) return;
+  state.sending = true;
+  document.getElementById('send-btn').disabled = true;
+
+  messagesEl.appendChild(renderUser(note, file.name));
+  addTyping();
+  showScanOverlay();
+
+  const form = new FormData();
+  form.append('file', file);
+  form.append('channel', state.channel);
+
+  try {
+    const res = await fetch(`${API_BASE}/api/analyze-file?channel=${encodeURIComponent(state.channel)}`, {
+      method: 'POST', body: form,
+    });
+    removeTyping();
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      messagesEl.appendChild(renderBot({ reply: err.detail || "Couldn't analyze that file." }));
+    } else {
+      const data = await res.json();
+      messagesEl.appendChild(renderBot(data));
+      state.scanCount++;
+      document.getElementById('stat-scans').textContent = 247 + state.scanCount;
+    }
+  } catch (e) {
+    removeTyping();
+    messagesEl.appendChild(renderBot({ reply: `⚠ Network error reaching ${API_BASE}. Is the backend running?` }));
+  } finally {
+    state.sending = false;
+    document.getElementById('send-btn').disabled = false;
+    hideScanOverlay();
+    scrollBottom();
+  }
+}
+
+/* ============================================================
+   GMAIL SCAN
+   ============================================================ */
+document.getElementById('gmail-chip').addEventListener('click', async () => {
+  if (state.sending) return;
+  state.sending = true;
+  addTyping();
+  showScanOverlay();
+
+  try {
+    const status = await fetch(`${API_BASE}/api/gmail/status`).then(r => r.json());
+    if (!status.connected) {
+      removeTyping();
+      const row = mkEl('div', 'msg-row bot');
+      const av  = mkEl('div', 'msg-avatar');
+      av.innerHTML = `<img src="${AVATAR_SVG}" alt="Ishu"/>`;
+      const bub = mkEl('div', 'bubble');
+      bub.innerHTML = `Gmail isn't connected yet.<br><br><a href="${API_BASE}/api/gmail/login" target="_blank" style="color:#2dd4bf;font-weight:600">Connect Gmail →</a>`;
+      row.appendChild(av); row.appendChild(bub);
+      messagesEl.appendChild(row);
+      return;
+    }
+
+    const res = await fetch(`${API_BASE}/api/gmail/scan?max_results=10`);
+    removeTyping();
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      messagesEl.appendChild(renderBot({ reply: err.detail || "Couldn't scan Gmail." }));
+    } else {
+      const items = await res.json();
+      const row = mkEl('div', 'msg-row bot');
+      const av  = mkEl('div', 'msg-avatar');
+      av.innerHTML = `<img src="${AVATAR_SVG}" alt="Ishu"/>`;
+      const bub = mkEl('div', 'bubble');
+      bub.appendChild(mkEl('div', null, `📥 Scanned your last ${items.length} emails:`));
+      const list = mkEl('div', 'inbox-list');
+      items.forEach(item => {
+        const card = mkEl('div', 'inbox-card');
+        if (item.verdict) {
+          const b = mkEl('div', `verdict-badge ${verdictClass(item.verdict)}`);
+          b.textContent = `⚠ ${item.verdict}`;
+          card.appendChild(b);
+        }
+        card.appendChild(mkEl('div', 'inbox-subject', esc(item.subject)));
+        card.appendChild(mkEl('div', 'inbox-sender', esc(item.sender)));
+        if (item.why) card.appendChild(mkEl('div', null, esc(item.why)));
+        list.appendChild(card);
+      });
+      bub.appendChild(list);
+      row.appendChild(av); row.appendChild(bub);
+      messagesEl.appendChild(row);
+    }
+  } catch (e) {
+    removeTyping();
+    messagesEl.appendChild(renderBot({ reply: `⚠ Network error reaching ${API_BASE}.` }));
+  } finally {
+    state.sending = false;
+    document.getElementById('send-btn').disabled = false;
+    hideScanOverlay();
+    scrollBottom();
+  }
+});
+
+/* ============================================================
+   FILE ATTACH
+   ============================================================ */
+const fileInput    = document.getElementById('file-input');
+const attachBtn    = document.getElementById('attach-btn');
+const attachBar    = document.getElementById('attachment-bar');
+const attachName   = document.getElementById('attachment-name');
+const clearAttach  = document.getElementById('clear-attach');
+
+attachBtn.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', () => {
+  const f = fileInput.files[0];
+  if (!f) return;
+  state.pendingFile = f;
+  attachName.textContent = `📎 ${f.name}`;
+  attachBar.classList.add('show');
+});
+clearAttach.addEventListener('click', () => {
+  state.pendingFile = null;
+  fileInput.value = '';
+  attachBar.classList.remove('show');
+});
+
+/* ============================================================
+   SUBMIT
+   ============================================================ */
+const msgInput = document.getElementById('msg-input');
+const sendBtn  = document.getElementById('send-btn');
+
+function submit() {
+  const text = msgInput.value.trim();
+  const file = state.pendingFile;
+
+  if (file) {
+    sendFile(file, text);
+    state.pendingFile = null;
+    fileInput.value = '';
+    attachBar.classList.remove('show');
+    msgInput.value = '';
+    msgInput.style.height = 'auto';
+    return;
+  }
+  if (!text) return;
+  msgInput.value = '';
+  msgInput.style.height = 'auto';
+  sendMessage(text);
+}
+
+sendBtn.addEventListener('click', submit);
+msgInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); }
+});
+msgInput.addEventListener('input', () => {
+  msgInput.style.height = 'auto';
+  msgInput.style.height = Math.min(msgInput.scrollHeight, 100) + 'px';
+});
+
+/* ============================================================
+   INITIAL GREETING
+   ============================================================ */
+messagesEl.appendChild(renderBot({
+  reply: `Hi! I'm Ishu 👋✨\n\nI'm your AI Scam Guard — here to protect you from fake job offers, phishing emails, and WhatsApp scams.\n\n🔍 Paste any suspicious message\n📎 Attach a PDF offer letter or screenshot\n📥 Tap "Scan Gmail" to check your inbox\n\nI'll tell you if it's a SCAM, SUSPICIOUS, or LEGITIMATE — and what to do next!`,
+}));
+
+/* ============================================================
+   QUICK SAMPLE PROMPTS (show after 2s)
+   ============================================================ */
+setTimeout(() => {
+  const hints = [
+    'Try: "I got a job offer asking for ₹5000 registration fee"',
+    'Try: "WhatsApp message saying I won a lottery"',
+    'Try: "Email from HR@gmail.com about an internship"',
+  ];
+  const hint = hints[Math.floor(Math.random() * hints.length)];
+  showToast(`💡 ${hint}`, 5000);
+}, 2500);
+
+</script>
+</body>
+</html>
