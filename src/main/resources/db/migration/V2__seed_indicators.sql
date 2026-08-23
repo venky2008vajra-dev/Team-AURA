@@ -1,0 +1,7 @@
+INSERT IGNORE INTO risk_indicator_definitions (code, category, default_severity, default_weight, description, recommendation_text) VALUES
+('PAYMENT_FEE_REQUEST', 'TEXT', 'HIGH', 30, 'Legitimate employers do not charge candidates to apply, register, or onboard.', 'Do not make any payment to secure this offer.'),
+('URGENT_LANGUAGE', 'TEXT', 'MEDIUM', 15, 'Artificial urgency is a common pressure tactic used to prevent victims from verifying an offer.', 'Take your time -- legitimate offers do not require snap decisions under pressure.'),
+('UNREALISTIC_SALARY', 'TEXT', 'MEDIUM', 20, 'The advertised pay is well outside realistic market rates for the described role.', 'Compare the advertised pay against realistic market rates for similar roles.'),
+('OTP_REQUEST', 'TEXT', 'CRITICAL', 25, 'No legitimate employer or platform will ever ask for your OTP or verification code.', 'Never share an OTP or verification code with anyone, regardless of who they claim to be.'),
+('SENSITIVE_DOCUMENT_REQUEST', 'TEXT', 'HIGH', 20, 'Requests for sensitive ID or banking documents before an offer is verified are a strong scam signal.', 'Do not send ID or banking documents until you have independently verified the employer.'),
+('SUSPICIOUS_KEYWORD', 'TEXT', 'LOW', 10, 'Phrasing commonly used in mass-distributed scam postings rather than genuine job listings.', 'Be cautious of vague, too-good-to-be-true job descriptions.');

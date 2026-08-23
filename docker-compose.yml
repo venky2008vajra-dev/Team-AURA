@@ -1,0 +1,39 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: scamcheck-postgres
+    environment:
+      POSTGRES_DB: scamcheck
+      POSTGRES_USER: scamcheck
+      POSTGRES_PASSWORD: scamcheck
+    ports:
+      - "5432:5432"
+    volumes:
+      - scamcheck_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U scamcheck"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: scamcheck-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: scamcheck
+      DB_USERNAME: scamcheck
+      DB_PASSWORD: scamcheck
+      JWT_SECRET: change-this-to-a-long-random-secret-value-min-32-bytes
+      JWT_EXPIRATION_MS: 3600000
+    ports:
+      - "8080:8080"
+
+volumes:
+  scamcheck_pgdata:
