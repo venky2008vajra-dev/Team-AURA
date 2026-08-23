@@ -1,8 +1,11 @@
+<<<<<<< HEAD
 venv/
 __pycache__/
 *.pyc
 .env
 
+=======
+>>>>>>> f287ab85d534b81edeba9b6beee8a23bf4829db6
 HELP.md
 target/
 .mvn/wrapper/maven-wrapper.jar
@@ -35,4 +38,8 @@ build/
 !**/src/test/**/build/
 
 ### VS Code ###
+<<<<<<< HEAD
 .vscode/
+=======
+.vscode/
+>>>>>>> f287ab85d534b81edeba9b6beee8a23bf4829db6

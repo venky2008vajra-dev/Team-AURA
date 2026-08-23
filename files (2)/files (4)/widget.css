@@ -1,0 +1,288 @@
+/* ==========================================================================
+   Aishu Scam Guard — Main Widget Styling
+   ========================================================================== */
+
+#aishu-panel {
+  position: fixed;
+  bottom: 105px;
+  right: 20px;
+  width: 380px;
+  max-width: calc(100vw - 40px);
+  height: 560px;
+  max-height: calc(100vh - 130px);
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 18px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  z-index: 999998;
+  opacity: 0;
+  transform: translateY(20px) scale(0.96);
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#aishu-panel.aishu-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+/* Header */
+#aishu-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #1e293b;
+  border-bottom: 1px solid #334155;
+  color: #ffffff;
+}
+
+.aishu-avatar {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.aishu-titles {
+  flex: 1;
+}
+
+.aishu-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.aishu-subtitle {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.aishu-close {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+}
+
+.aishu-close:hover {
+  color: #f8fafc;
+  background: #334155;
+}
+
+/* Channels selector */
+#aishu-channels {
+  display: flex;
+  gap: 6px;
+  padding: 8px 12px;
+  background: #0f172a;
+  border-bottom: 1px solid #1e293b;
+  overflow-x: auto;
+}
+
+.aishu-chip {
+  background: #1e293b;
+  color: #cbd5e1;
+  border: 1px solid #334155;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.aishu-chip:hover {
+  background: #334155;
+}
+
+.aishu-chip.aishu-active {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #38bdf8;
+}
+
+.aishu-chip.aishu-gmail {
+  border-color: #f59e0b;
+  color: #fbbf24;
+}
+
+/* Messages Area */
+#aishu-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.aishu-msg {
+  display: flex;
+  max-width: 85%;
+}
+
+.aishu-user {
+  align-self: flex-end;
+}
+
+.aishu-user .aishu-bubble {
+  background: #0284c7;
+  color: #ffffff;
+  border-radius: 14px 14px 2px 14px;
+  padding: 10px 14px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.aishu-bot {
+  align-self: flex-start;
+}
+
+.aishu-bot .aishu-bubble {
+  background: #1e293b;
+  color: #e2e8f0;
+  border-radius: 14px 14px 14px 2px;
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.4;
+  border: 1px solid #334155;
+}
+
+/* Verdict Badges */
+.aishu-verdict {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.aishu-verdict.scam {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid #ef4444;
+}
+
+.aishu-verdict.suspicious {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid #f59e0b;
+}
+
+.aishu-verdict.legit {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+  border: 1px solid #22c55e;
+}
+
+.aishu-flags {
+  margin: 8px 0 0 0;
+  padding-left: 18px;
+  font-size: 12px;
+  color: #fca5a5;
+}
+
+/* Attachment strip */
+#aishu-attachment {
+  display: none;
+  padding: 6px 12px;
+  background: #1e293b;
+  font-size: 11px;
+  color: #38bdf8;
+  border-top: 1px solid #334155;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#aishu-attachment.aishu-show {
+  display: flex;
+}
+
+#aishu-attachment button {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+}
+
+/* Input Bar */
+#aishu-inputbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #0f172a;
+  border-top: 1px solid #1e293b;
+}
+
+#aishu-attach-btn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+}
+
+#aishu-attach-btn:hover {
+  color: #38bdf8;
+}
+
+#aishu-input {
+  flex: 1;
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #ffffff;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 13px;
+  resize: none;
+  outline: none;
+  font-family: inherit;
+}
+
+#aishu-input:focus {
+  border-color: #38bdf8;
+}
+
+#aishu-send {
+  background: #38bdf8;
+  border: none;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+#aishu-send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Footnote */
+#aishu-footnote {
+  font-size: 10px;
+  color: #64748b;
+  text-align: center;
+  padding-bottom: 6px;
+}
