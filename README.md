@@ -1,6 +1,10 @@
+# Team-AURA
+team ID HS2026-097
+PS3
+
 # ScamCheck Backend
 
-Opportunity verification API. Java 21, Spring Boot 3.3, PostgreSQL, JWT auth.
+Opportunity verification API. Java 21, Spring Boot 3.3, MySQL, JWT auth.
 
 ## Run locally with Docker
 ```
@@ -10,8 +14,9 @@ API available at http://localhost:8080
 Swagger UI at http://localhost:8080/swagger-ui.html
 
 ## Run locally without Docker
-1. Start a local PostgreSQL instance, create a `scamcheck` database and user matching `application.yml`.
-2. `./mvnw spring-boot:run`
+1. Start a local MySQL instance, create a `scamcheck` database and user matching `application.yml`.
+2. Set the `DB_PASSWORD` environment variable to your MySQL password.
+3. `./mvnw spring-boot:run`
 
 ## Try it
 ```
